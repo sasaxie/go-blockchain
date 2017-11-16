@@ -17,11 +17,13 @@ type Transaction struct {
 	Vout []TXOutput
 }
 
+// 创建一个 coinbase 交易
 func NewCoinbaseTX(to, data string) *Transaction {
 	if data == "" {
 		data = fmt.Sprintf("Reward to '%s'", to)
 	}
 
+	// coinbase 交易没有输入端，所以 Txid 为空，Vout 置为 -1
 	txin := TXInput{[]byte{}, -1, data}
 	txout := TXOutput{subsidy, to}
 	tx := Transaction{nil, []TXInput{txin}, []TXOutput{txout}}
@@ -30,6 +32,7 @@ func NewCoinbaseTX(to, data string) *Transaction {
 	return &tx
 }
 
+// 设置交易 ID，根据交易数据，编码后进行 SHA-256
 func (tx Transaction) SetID() {
 	var encoded bytes.Buffer
 	var hash [32]byte
@@ -43,6 +46,7 @@ func (tx Transaction) SetID() {
 	tx.ID = hash[:]
 }
 
+// 交易只有一个输入端，并且 Txid 为空，Vout 为 -1 就可以确定为是 coinbase 交易
 func (tx Transaction) IsCoinbase() bool {
 	return len(tx.Vin) == 1 && len(tx.Vin[0].Txid) == 0 && tx.Vin[0].Vout == -1
 }
