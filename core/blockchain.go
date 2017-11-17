@@ -62,6 +62,7 @@ func (bc *Blockchain) FindUnspentTransactions(address string) []Transaction {
 	spentTXOs := make(map[string][]int)
 	bci := bc.Iterator()
 
+	// 从区块链的最后块往前遍历
 	for {
 		block := bci.Next()
 
@@ -69,6 +70,8 @@ func (bc *Blockchain) FindUnspentTransactions(address string) []Transaction {
 			txID := hex.EncodeToString(tx.ID)
 
 		Outputs:
+			// 查看输出端是否已经作为输入端了
+			// 如果已经作为输入端了，说明被消费了
 			for outIdx, out := range tx.Vout {
 				if spentTXOs[txID] != nil {
 					for _, spentOut := range spentTXOs[txID] {
@@ -78,11 +81,13 @@ func (bc *Blockchain) FindUnspentTransactions(address string) []Transaction {
 					}
 				}
 
+				// 如果没被消费，根据地址解锁使用权限，作为未消费准备
 				if out.CanBeUnlockedWith(address) {
 					unspentTXs = append(unspentTXs, *tx)
 				}
 			}
 
+			// 如果该交易不是 coinbase 交易，需要将输入的加到已消费里
 			if tx.IsCoinbase() == false {
 				for _, in := range tx.Vin {
 					if in.CanUnlockOutputWith(address) {
@@ -107,6 +112,8 @@ func (bc *Blockchain) FindUTXO(address string) []TXOutput {
 
 	for _, tx := range unspentTransactions {
 		for _, out := range tx.Vout {
+			// 需要过滤一下，因为上面添加的是符合这个地址的整体交易信息
+			// 而只有这个交易中的这个地址的输出端才是有权限转账的
 			if out.CanBeUnlockedWith(address) {
 				UTXOs = append(UTXOs, out)
 			}
