@@ -53,6 +53,7 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 		fmt.Printf("\r%x", hash)
 		hashInt.SetBytes(hash[:])
 
+		// hashInt < pow.target == -1
 		if hashInt.Cmp(pow.target) == -1 {
 			break
 		} else {
