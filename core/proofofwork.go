@@ -18,6 +18,7 @@ type ProofOfWork struct {
 
 func NewProofOfWork(b *Block) *ProofOfWork {
 	target := big.NewInt(1)
+	// targetBits 越大，左移的位数越少，开头的零就越多，难度就越大
 	target.Lsh(target, uint(256-targetBits))
 
 	pow := &ProofOfWork{b, target}
@@ -25,6 +26,7 @@ func NewProofOfWork(b *Block) *ProofOfWork {
 	return pow
 }
 
+// 如果增加新字段，需要更新这个方法的内容
 func (pow *ProofOfWork) prepareData(nonce int) []byte {
 	data := bytes.Join(
 		[][]byte{
