@@ -9,16 +9,21 @@ import (
 	"math/big"
 )
 
-const targetBits = 24
+var (
+	maxNonce = math.MaxInt64
+)
 
+const targetBits = 16
+
+// ProofOfWork represents a proof-of-work
 type ProofOfWork struct {
 	block  *Block
 	target *big.Int
 }
 
+// NewProofOfWork builds and returns a ProofOfWork
 func NewProofOfWork(b *Block) *ProofOfWork {
 	target := big.NewInt(1)
-	// targetBits 越大，左移的位数越少，开头的零就越多，难度就越大
 	target.Lsh(target, uint(256-targetBits))
 
 	pow := &ProofOfWork{b, target}
@@ -26,7 +31,6 @@ func NewProofOfWork(b *Block) *ProofOfWork {
 	return pow
 }
 
-// 如果增加新字段，需要更新这个方法的内容
 func (pow *ProofOfWork) prepareData(nonce int) []byte {
 	data := bytes.Join(
 		[][]byte{
@@ -42,20 +46,20 @@ func (pow *ProofOfWork) prepareData(nonce int) []byte {
 	return data
 }
 
+// Run performs a proof-of-work
 func (pow *ProofOfWork) Run() (int, []byte) {
 	var hashInt big.Int
 	var hash [32]byte
 	nonce := 0
 
 	fmt.Printf("Mining a new block")
-	for nonce < math.MaxInt64 {
+	for nonce < maxNonce {
 		data := pow.prepareData(nonce)
 
 		hash = sha256.Sum256(data)
 		fmt.Printf("\r%x", hash)
 		hashInt.SetBytes(hash[:])
 
-		// hashInt < pow.target == -1
 		if hashInt.Cmp(pow.target) == -1 {
 			break
 		} else {
@@ -67,6 +71,7 @@ func (pow *ProofOfWork) Run() (int, []byte) {
 	return nonce, hash[:]
 }
 
+// Validate validates block's PoW
 func (pow *ProofOfWork) Validate() bool {
 	var hashInt big.Int
 

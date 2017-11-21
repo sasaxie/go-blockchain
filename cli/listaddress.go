@@ -6,8 +6,8 @@ import (
 	"log"
 )
 
-func (cli *CLI) listAddresses() {
-	wallets, err := core.NewWallets()
+func (cli *CLI) listAddresses(nodeID string) {
+	wallets, err := core.NewWallets(nodeID)
 	if err != nil {
 		log.Panic(err)
 	}

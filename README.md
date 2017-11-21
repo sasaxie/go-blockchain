@@ -1,5 +1,7 @@
 # go-blockchain
 
+First, set **NODE_ID** to 3000 (**export NODE_ID=3000**) in the first terminal window. I’ll use badges like **NODE 3000** or **NODE 3001** before next paragraphs, for you to know what node to perform actions on.
+
 **创建钱包**
 
 ```
@@ -35,10 +37,22 @@
 **转账：**
 
 ```
-> ./go-blockchain send -from 1321QKXdSdYXLPZiGxC9NS6HjTuDEFR119 -to 1546AtPEFt5uGyvhbRDLUoqLTy5zfUZhsY -amount 1
+> ./go-blockchain send -from 1321QKXdSdYXLPZiGxC9NS6HjTuDEFR119 -to 1546AtPEFt5uGyvhbRDLUoqLTy5zfUZhsY -amount 1 -mine
 > 00000013eda8154a87b0ee7ad5bf54f63cd6a0a2de89ce4bbc9f08313cf2c62a
 > 
 > Success!
+```
+
+**启动节点**
+
+```
+> ./go-blockchain startnode
+```
+
+**设置挖矿节点**
+
+```
+> ./go-blockchain startnode -miner 14kiRgXmK5tDq3MzoM33Tz3wLZSTbBK9TK
 ```
 
 **打印区块链：**

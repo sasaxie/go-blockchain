@@ -5,8 +5,8 @@ import (
 	"github.com/sasaxie/go-blockchain/core"
 )
 
-func (cli *CLI) reindexUTXO() {
-	bc := core.NewBlockchain()
+func (cli *CLI) reindexUTXO(nodeID string) {
+	bc := core.NewBlockchain(nodeID)
 	UTXOSet := core.UTXOSet{bc}
 	UTXOSet.Reindex()
 
