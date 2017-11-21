@@ -1,8 +1,17 @@
 # go-blockchain
 
-First, set **NODE_ID** to 3000 (**export NODE_ID=3000**) in the first terminal window. I’ll use badges like **NODE 3000** or **NODE 3001** before next paragraphs, for you to know what node to perform actions on.
+# Installation
 
-**创建钱包**
+```
+> go get github.com/sasaxie/go-blockchain
+> cd $GOPATH/src/github.com/sasaxie/go-blockchain/
+> go build
+> ./go-blockchain [command] -[option]
+```
+
+# Commands
+
+**Create wallet:**
 
 ```
 > ./go-blockchain createwallet
@@ -11,7 +20,7 @@ First, set **NODE_ID** to 3000 (**export NODE_ID=3000**) in the first terminal w
 > Your new address: 1546AtPEFt5uGyvhbRDLUoqLTy5zfUZhsY
 ```
 
-**创建区块链：**
+**Create blockchain:**
 
 ```
 > ./go-blockchain createblockchain -address 1321QKXdSdYXLPZiGxC9NS6HjTuDEFR119
@@ -20,21 +29,21 @@ First, set **NODE_ID** to 3000 (**export NODE_ID=3000**) in the first terminal w
 > Done!
 ```
 
-**重置 UTXO**
+**Reindex UTXO:**
 
 ```
 > ./go-blockchain reindexutxo
 > Done! There are 1 transactions in the UTXO set.
 ```
 
-**查看账号余额：**
+**Get balance:**
 
 ```
 > ./go-blockchain getbalance -address 1321QKXdSdYXLPZiGxC9NS6HjTuDEFR119
 > Balance of '1321QKXdSdYXLPZiGxC9NS6HjTuDEFR119': 10
 ```
 
-**转账：**
+**Send coin:**
 
 ```
 > ./go-blockchain send -from 1321QKXdSdYXLPZiGxC9NS6HjTuDEFR119 -to 1546AtPEFt5uGyvhbRDLUoqLTy5zfUZhsY -amount 1 -mine
@@ -43,19 +52,19 @@ First, set **NODE_ID** to 3000 (**export NODE_ID=3000**) in the first terminal w
 > Success!
 ```
 
-**启动节点**
+**Start node:**
 
 ```
 > ./go-blockchain startnode
 ```
 
-**设置挖矿节点**
+**Set miner node:**
 
 ```
 > ./go-blockchain startnode -miner 14kiRgXmK5tDq3MzoM33Tz3wLZSTbBK9TK
 ```
 
-**打印区块链：**
+**Print chain:**
 
 ```
 > ./go-blockchain printchain
@@ -92,4 +101,127 @@ First, set **NODE_ID** to 3000 (**export NODE_ID=3000**) in the first terminal w
 >        Script: 162100ce8ca041f88ad7089aa0b06a99862a2969
 ```
 
+# Example
 
+Let’s play the scenario we defined earlier.
+
+First, set **NODE_ID** to 3000 (**export NODE_ID=3000**) in the first terminal window. I’ll use badges like **NODE 3000** or **NODE 3001** before next paragraphs, for you to know what node to perform actions on.
+
+**NODE 3000**
+Create a wallet and a new blockchain:
+
+```
+$ ./go-blockchain createblockchain -address CENTREAL_NODE
+```
+
+(I’ll use fake addresses for clarity and brevity)
+
+After that, the blockchain will contain single genesis block. We need to save the block and use it in other nodes. Genesis blocks serve as identifiers of blockchains (in Bitcoin Core, the genesis block is hardcoded).
+
+```
+$ cp blockchain_3000.db blockchain_genesis.db 
+```
+
+**NODE 3001**
+Next, open a new terminal window and set node ID to 3001. This will be a wallet node. Generate some addresses with **./go-blockchain createwallet**, we’ll call these addresses **WALLET_1**, **WALLET_2**, **WALLET_3**.
+
+**NODE 3000**
+Send some coins to the wallet addresses:
+
+```
+$ ./go-blockchain send -from CENTREAL_NODE -to WALLET_1 -amount 10 -mine
+$ ./go-blockchain send -from CENTREAL_NODE -to WALLET_2 -amount 10 -mine
+```
+
+**-mine** flag means that the block will be immediately mined by the same node. We have to have this flag because initially there are no miner nodes in the network.
+Start the node:
+
+```
+$ ./go-blockchain startnode
+```
+
+The node must be running until the end of the scenario.
+
+**NODE 3001**
+Start the node’s blockchain with the genesis block saved above:
+
+```
+$ cp blockchain_genesis.db blockchain_3001.db
+```
+
+Run the node:
+
+```
+$ ./go-blockchain startnode
+```
+
+It’ll download all the blocks from the central node. To check that everything’s ok, stop the node and check the balances:
+
+```
+$ ./go-blockchain getbalance -address WALLET_1
+Balance of 'WALLET_1': 10
+
+$ ./go-blockchain getbalance -address WALLET_2
+Balance of 'WALLET_2': 10
+```
+
+Also, you can check the balance of the **CENTRAL_NODE** address, because the node 3001 now has its blockchain:
+
+```
+$ ./go-blockchain getbalance -address CENTRAL_NODE
+Balance of 'CENTRAL_NODE': 10
+```
+
+**NODE 3002**
+Open a new terminal window and set its ID to 3002, and generate a wallet. This will be a miner node. Initialize the blockchain:
+
+```
+$ cp blockchain_genesis.db blockchain_3002.db
+```
+
+And start the node:
+
+```
+$ ./go-blockchain startnode -miner MINER_WALLET
+```
+
+**NODE 3001**
+Send some coins:
+
+```
+$ ./go-blockchain send -from WALLET_1 -to WALLET_3 -amount 1
+$ ./go-blockchain send -from WALLET_2 -to WALLET_4 -amount 1
+```
+
+**NODE 3002**
+Quickly! Switch to the miner node and see it mining a new block! Also, check the output of the central node.
+
+**NODE 3001**
+Switch to the wallet node and start it:
+
+```
+$ ./go-blockchain startnode
+```
+
+It’ll download the newly mined block!
+
+Stop it and check balances:
+
+```
+$ ./go-blockchain getbalance -address WALLET_1
+Balance of 'WALLET_1': 9
+
+$ ./go-blockchain getbalance -address WALLET_2
+Balance of 'WALLET_2': 9
+
+$ ./go-blockchain getbalance -address WALLET_3
+Balance of 'WALLET_3': 1
+
+$ ./go-blockchain getbalance -address WALLET_4
+Balance of 'WALLET_4': 1
+
+$ ./go-blockchain getbalance -address MINER_WALLET
+Balance of 'MINER_WALLET': 10
+```
+
+That’s it!
