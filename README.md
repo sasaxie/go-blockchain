@@ -18,6 +18,13 @@
 > Done!
 ```
 
+**重置 UTXO**
+
+```
+> ./go-blockchain reindexutxo
+> Done! There are 1 transactions in the UTXO set.
+```
+
 **查看账号余额：**
 
 ```

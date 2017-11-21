@@ -14,10 +14,15 @@ func (cli *CLI) send(from, to string, amount int) {
 		log.Panic("ERROR: Recipient address is not valid")
 	}
 
-	bc := core.NewBlockchain(from)
+	bc := core.NewBlockchain()
+	UTXOSet := core.UTXOSet{bc}
 	defer bc.DB.Close()
 
-	tx := core.NewUTXOTransaction(from, to, amount, bc)
-	bc.MineBlock([]*core.Transaction{tx})
+	tx := core.NewUTXOTransaction(from, to, amount, &UTXOSet)
+	cbTx := core.NewCoinbaseTX(from, "")
+	txs := []*core.Transaction{cbTx, tx}
+
+	newBlock := bc.MineBlock(txs)
+	UTXOSet.Update(newBlock)
 	fmt.Println("Success!")
 }
